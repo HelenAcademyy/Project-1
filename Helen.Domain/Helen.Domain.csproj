@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="MTN\" />
+    <None Remove="MTN\SMS\" />
+    <None Remove="MTN\SMS\Request\" />
+    <None Remove="MTN\SMS\Response\" />
+    <None Remove="GenericResponse\" />
+    <None Remove="Invites\" />
+    <None Remove="Invites\Request\" />
+    <None Remove="Invites\Response\" />
+    <None Remove="User\" />
+    <None Remove="User\Request\" />
+    <None Remove="User\Response\" />
+    <None Remove="Enum\" />
+    <None Remove="Paystack\" />
+    <None Remove="Paystack\Request\" />
+    <None Remove="Paystack\Response\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="MTN\" />
+    <Folder Include="MTN\SMS\" />
+    <Folder Include="MTN\SMS\Request\" />
+    <Folder Include="MTN\SMS\Response\" />
+    <Folder Include="GenericResponse\" />
+    <Folder Include="Invites\" />
+    <Folder Include="Invites\Request\" />
+    <Folder Include="Invites\Response\" />
+    <Folder Include="User\" />
+    <Folder Include="User\Request\" />
+    <Folder Include="User\Response\" />
+    <Folder Include="Enum\" />
+    <Folder Include="Paystack\" />
+    <Folder Include="Paystack\Request\" />
+    <Folder Include="Paystack\Response\" />
+  </ItemGroup>
+</Project>
