@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Helen.Service
 {
+    /*
     public interface IPaystackService
     {
         Task<GenericResponse<PaystackInitializeTransactionResponse>> InitializeTransactionAsync(PaystackInitializeTransactionRequest request);
@@ -82,6 +83,6 @@ namespace Helen.Service
 
             return response;
         }
-    }
+    }*/
 }
 

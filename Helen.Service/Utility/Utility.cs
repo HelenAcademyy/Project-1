@@ -57,8 +57,8 @@ namespace Helen.Service.Utility
 
                 return new GenericResponse<T>
                 {
-                    ResponseCode = int.TryParse(response?.ResponseCode, out var code) ? code : 500,
-                    IsSuccessful = response?.ResponseCode?.StartsWith("2") == true,
+                    ResponseCode = response.ResponseCode.Value,
+                    IsSuccessful = response.IsSuccessful.HasValue,
                     Message = response?.Content ?? "No content",
                     Data = response?.ResponseObject
                 };

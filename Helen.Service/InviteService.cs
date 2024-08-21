@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Helen.Domain.Enum;
 using Helen.Domain.GenericResponse;
+using Helen.Domain.Invites;
+using Helen.Domain.Invites.Request;
 using Helen.Domain.Invites.Response;
 using Helen.Repository;
 using Helen.Service.Utility;
@@ -18,6 +21,7 @@ namespace Helen.Service
         Task<GenericResponse<IEnumerable<LocationNotificationData>>> UpdateLocationAsync(IEnumerable<LocationNotificationData> locations);
         Task<GenericResponse<IEnumerable<LocationNotificationData>>> GetAllLocationsAsync();
         Task<GenericResponse<IEnumerable<LocationNotificationData>>> AddLocationAsync(IEnumerable<LocationNotificationData> locations);
+        Task<GenericResponse<IEnumerable<CustomerDetailsRequest>>> MatchCustomersWithLocationsAsync();
     }
 
     public class InviteService : IInviteService
@@ -26,40 +30,38 @@ namespace Helen.Service
         private readonly IMemoryCache _cache;
         private readonly IConfiguration _configuration;
         private readonly HelenDbContext _dbContext;
-        private readonly int _batchSize;
+        private readonly IUtility _utility;
 
         public InviteService(
             ILogger<InviteService> logger,
             IMemoryCache cache,
             IConfiguration configuration,
-            HelenDbContext dbContext)
+            HelenDbContext dbContext,
+            IUtility utility)
         {
             _logger = logger;
             _cache = cache;
             _configuration = configuration;
             _dbContext = dbContext;
-            _batchSize = Convert.ToInt32(configuration["BatchProcessing:BatchSize"]);
+            _utility = utility;
         }
 
         public async Task<GenericResponse<IEnumerable<LocationNotificationData>>> GetAllLocationsAsync()
         {
-            var cacheKey = "AllLocations";
+            const string cacheKey = "AllLocations";
             if (!_cache.TryGetValue(cacheKey, out IEnumerable<LocationNotificationData> locations))
             {
                 try
                 {
                     locations = await _dbContext.LocationNotificationData.AsNoTracking().ToListAsync();
 
-                    bool isLive = Convert.ToBoolean(_configuration["Production:IsLive"]);
-
-                    if (isLive)
+                    if (bool.TryParse(_configuration["Production:IsLive"], out bool isLive) && isLive)
                     {
-                        var cacheEntryOptions = new MemoryCacheEntryOptions
+                        _cache.Set(cacheKey, locations, new MemoryCacheEntryOptions
                         {
-                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Convert.ToInt32(_configuration["Cache:AbsoluteExpirationMinutes"])),
-                            SlidingExpiration = TimeSpan.FromMinutes(Convert.ToInt32(_configuration["Cache:SlidingExpirationMinutes"]))
-                        };
-                        _cache.Set(cacheKey, locations, cacheEntryOptions);
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(int.Parse(_configuration["Cache:AbsoluteExpirationMinutes"])),
+                            SlidingExpiration = TimeSpan.FromMinutes(int.Parse(_configuration["Cache:SlidingExpirationMinutes"]))
+                        });
                     }
                 }
                 catch (Exception ex)
@@ -69,7 +71,7 @@ namespace Helen.Service
                     {
                         IsSuccessful = false,
                         ResponseCode = 500,
-                        Message = "An unexpected error occurred.",
+                        Message = "An unexpected error occurred while fetching locations.",
                         Data = null
                     };
                 }
@@ -100,15 +102,14 @@ namespace Helen.Service
 
             try
             {
-                var existingNames = await _dbContext.LocationNotificationData
+                var existingNamesSet = new HashSet<string>(await _dbContext.LocationNotificationData
                     .AsNoTracking()
-                    .Where(l => locations.Select(loc => loc.Name).Contains(l.Name))
                     .Select(l => l.Name)
-                    .ToListAsync();
+                    .ToListAsync());
 
-                var existingNamesSet = new HashSet<string>(existingNames);
-
-                var locationsToAdd = locations.Where(loc => !existingNamesSet.Contains(loc.Name)).ToList();
+                var locationsToAdd = locations
+                    .Where(loc => !existingNamesSet.Contains(loc.Name))
+                    .ToList();
 
                 if (locationsToAdd.Any())
                 {
@@ -120,7 +121,7 @@ namespace Helen.Service
                 {
                     IsSuccessful = true,
                     ResponseCode = 201,
-                    Message = "Locations added successfully",
+                    Message = "Locations added successfully.",
                     Data = locationsToAdd
                 };
             }
@@ -131,7 +132,7 @@ namespace Helen.Service
                 {
                     IsSuccessful = false,
                     ResponseCode = 500,
-                    Message = "An unexpected error occurred.",
+                    Message = "An unexpected error occurred while adding locations.",
                     Data = null
                 };
             }
@@ -153,19 +154,19 @@ namespace Helen.Service
 
             try
             {
-                var locationNames = locations.Select(loc => loc.Name).ToHashSet();
+                var locationNames = new HashSet<string>(locations.Select(loc => loc.Name));
                 var existingLocations = await _dbContext.LocationNotificationData
                     .Where(l => locationNames.Contains(l.Name))
-                    .ToListAsync();
+                    .ToDictionaryAsync(l => l.Name);
 
-                var existingLocationsDict = existingLocations.ToDictionary(l => l.Name);
                 var locationsToUpdate = new List<LocationNotificationData>();
                 var locationsNotFound = new List<LocationNotificationData>();
 
                 foreach (var loc in locations)
                 {
-                    if (existingLocationsDict.TryGetValue(loc.Name, out var existingLoc))
+                    if (existingLocations.TryGetValue(loc.Name, out var existingLoc))
                     {
+                        // Update properties of existingLoc with loc values
                         existingLoc.WeekdayOpenTime = loc.WeekdayOpenTime;
                         existingLoc.WeekdayCloseTime = loc.WeekdayCloseTime;
                         existingLoc.SaturdayOpenTime = loc.SaturdayOpenTime;
@@ -179,9 +180,13 @@ namespace Helen.Service
                         existingLoc.AvailableForRent = loc.AvailableForRent;
                         existingLoc.RentPrice = loc.RentPrice;
                         existingLoc.DateAdded = loc.DateAdded;
+
                         locationsToUpdate.Add(existingLoc);
                     }
-                  
+                    else
+                    {
+                        locationsNotFound.Add(loc);
+                    }
                 }
 
                 if (locationsToUpdate.Any())
@@ -194,8 +199,8 @@ namespace Helen.Service
                 {
                     IsSuccessful = true,
                     ResponseCode = 200,
-                    Message = "Locations updated successfully",
-                    Data = locationsToUpdate.Concat(locationsNotFound) 
+                    Message = $"{locationsToUpdate.Count} location(s) updated successfully. {locationsNotFound.Count} location(s) not found.",
+                    Data = locationsToUpdate
                 };
             }
             catch (Exception ex)
@@ -205,11 +210,81 @@ namespace Helen.Service
                 {
                     IsSuccessful = false,
                     ResponseCode = 500,
-                    Message = "An unexpected error occurred.",
+                    Message = "An unexpected error occurred while updating locations.",
                     Data = null
                 };
             }
         }
 
+        public async Task<GenericResponse<IEnumerable<CustomerDetailsRequest>>> MatchCustomersWithLocationsAsync()
+        {
+            //bool sortByBudget = bool.TryParse(_configuration["Email:SortByBudget"], out var budget) && budget;
+            //bool sortByLocation = bool.TryParse(_configuration["Email:SortByLocation"], out var location) && location;
+
+            var customers = await _dbContext.UserData
+                .Where(u => u.Status == ProfileStatus.Active)
+                .Select(u => new CustomerDetail
+                {
+                    Username = u.Username,
+                    Age = DateTime.Now.Year - u.DateOfBirth.Year - (DateTime.Now.DayOfYear < u.DateOfBirth.DayOfYear ? 1 : 0),
+                    Status = (ProfileStatus)u.Status,
+                    ReminderTime = u.ReminderTime,
+                    SendViaMail = u.SendViaMail,
+                    Email = u.Email,
+                    Budget = u.Budget,
+                    IsSmoker = u.IsSmoker,
+                    Location = u.Location,
+                    PhoneNumber = u.PhoneNumber,
+                    ReminderFrequency = (ReminderFrequency)u.ReminderFrequency
+                })
+                .ToListAsync();
+
+            var locations = await _dbContext.LocationNotificationData
+                .Where(l => !string.IsNullOrEmpty(l.Location))
+                .ToListAsync();
+
+            var result = customers.Select(customer =>
+            {
+                var matchingLocations = locations
+                    .Where(l => l.Area.Equals(customer.Location, StringComparison.OrdinalIgnoreCase))
+                    .Select(l => new CustomerLocation
+                    {
+                        Name = l.Name,
+                        WeekdayOpenTime = l.WeekdayOpenTime,
+                        WeekdayCloseTime = l.WeekdayCloseTime,
+                        SaturdayOpenTime = l.SaturdayOpenTime,
+                        SaturdayCloseTime = l.SaturdayCloseTime,
+                        SundayOpenTime = l.SundayOpenTime,
+                        SundayCloseTime = l.SundayCloseTime,
+                        Type = l.Type,
+                        Location = l.Location,
+                        Area = l.Area,
+                        ExtraInformation = l.ExtraInformation,
+                        Budget = l.Budget,
+                        DateAdded = l.DateAdded
+                    })
+                    .ToList();
+
+                return new CustomerDetailsRequest
+                {
+                    Customer = customer,
+                    MatchingLocations = matchingLocations
+                };
+            }).ToList();
+
+            //if (sortByBudget)
+            //    result = result.OrderBy(r => r.Customer.Budget).ToList();
+
+            //if (sortByLocation)
+            //    result = result.OrderBy(r => r.Customer.Location).ToList();
+
+            return new GenericResponse<IEnumerable<CustomerDetailsRequest>>
+            {
+                IsSuccessful = true,
+                ResponseCode = 200,
+                Message = "Customer and location data matched successfully.",
+                Data = result
+            };
+        }
     }
 }

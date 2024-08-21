@@ -3,7 +3,8 @@ namespace Helen.Domain
 {
 	public class GenericHttpResponse<T>
 	{
-		public string? ResponseCode { get; set; }
+		public int? ResponseCode { get; set; }
+		public bool? IsSuccessful { get; set; }
 		public string? Content { get; set; }
 		public T? ResponseObject { get; set; }
 	}

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using Helen.Domain.Enum;
+using NetTopologySuite.Algorithm;
+using NetTopologySuite.Geometries;
 
 namespace Helen.Repository
 {
@@ -22,7 +24,12 @@ namespace Helen.Repository
         public ProfileStatus Status { get; set; }
         public DateTime ReminderTime { get; set; }
         public bool SendViaMail { get; set; }
-
+        public bool SendViaPhone { get; set; }
+        public string Location
+        {
+            get => _location;
+            set => _location = value.ToLower();
+        }
         private int CalculateAge(DateTime dateOfBirth)
         {
             var today = DateTime.Today;
@@ -32,5 +39,7 @@ namespace Helen.Repository
 
             return age;
         }
+        private string _location = string.Empty;
+
     }
 }

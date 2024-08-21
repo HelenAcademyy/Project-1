@@ -52,7 +52,7 @@ namespace Helen.Service
                 stopwatch.Stop();
 
                 var responseBody = await httpResponse.Content.ReadAsStringAsync();
-                response.ResponseCode = httpResponse.StatusCode.ToString();
+                response.ResponseCode = Convert.ToInt16(httpResponse.StatusCode);
                 response.Content = responseBody;
 
                 if (httpResponse.IsSuccessStatusCode)
@@ -87,35 +87,45 @@ namespace Helen.Service
                 {
                     Method = HttpMethod.Post,
                     RequestUri = new Uri(url),
-                    Content = new StringContent(JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json")
+                    Content = new StringContent(JsonSerializer.Serialize(payload), null, "application/json")
                 };
 
                 using var httpResponse = await _client.SendAsync(request);
                 stopwatch.Stop();
 
                 var responseBody = await httpResponse.Content.ReadAsStringAsync();
-                response.ResponseCode = httpResponse.StatusCode.ToString();
+                response.ResponseCode = Convert.ToInt16(httpResponse.StatusCode);
                 response.Content = responseBody;
+                response.IsSuccessful = httpResponse.IsSuccessStatusCode;
+
+                _logger.LogInformation("Response received: {ResponseBody}", responseBody);
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    _logger.LogInformation("POST request to {Url} succeeded in {ElapsedTime} ms", url, stopwatch.ElapsedMilliseconds);
-                    response.ResponseObject = JsonSerializer.Deserialize<T>(responseBody);
+                    try
+                    {
+                        response.ResponseObject = JsonSerializer.Deserialize<T>(responseBody);
+                        _logger.LogInformation("POST request to {Url} succeeded in {ElapsedTime} ms", url, stopwatch.ElapsedMilliseconds);
+                    }
+                    catch (JsonException jsonEx)
+                    {
+                        _logger.LogError(jsonEx, "Error deserializing response content from {Url}", url);
+                    }
                 }
                 else
                 {
-                    _logger.LogWarning("POST request to {Url} failed with status code {StatusCode} in {ElapsedTime} ms", url, httpResponse.StatusCode, stopwatch.ElapsedMilliseconds);
-                   
+                    _logger.LogWarning("POST request to {Url} failed with status code {StatusCode} in {ElapsedTime} ms. Response body: {ResponseBody}",
+                                        url, httpResponse.StatusCode, stopwatch.ElapsedMilliseconds, responseBody);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while making POST request to {Url}", url);
-
             }
 
             return response;
         }
+
 
         public async Task<GenericHttpResponse<T>> GetToken<T>() where T : class
         {
@@ -150,5 +160,7 @@ namespace Helen.Service
 
             return new GenericHttpResponse<T> { ResponseObject = cachedToken.ResponseObject };
         }
+
+
     }
 }

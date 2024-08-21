@@ -14,7 +14,7 @@ namespace HelenAPI.Controllers
     [Route("[controller]")]
     public class MTNController : ControllerBase
     {
-        private readonly ILogger<MTNController> _logger;
+        /*private readonly ILogger<MTNController> _logger;
         private readonly IMTNService _MTNService;
 
         public MTNController(ILogger<MTNController> logger, IMTNService MTNService)
@@ -73,5 +73,6 @@ namespace HelenAPI.Controllers
                 });
             }
         }
+    }*/
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using NetTopologySuite.Algorithm;
 
 namespace Helen.Domain.Invites.Response
 {
@@ -25,6 +26,8 @@ namespace Helen.Domain.Invites.Response
         [MaxLength(250)]
         public string Location { get; set; } = string.Empty;
 
+        [MaxLength(10)]
+        public string? Area { get; set; }
         [MaxLength(500)]
         public string ExtraInformation { get; set; } = string.Empty;
 
@@ -32,5 +35,7 @@ namespace Helen.Domain.Invites.Response
         public bool AvailableForRent { get; set; }
         public decimal? RentPrice { get; set; }
         public DateTime? DateAdded { get; set; }
+
+
     }
 }

@@ -3,9 +3,10 @@ namespace Helen.Domain.Enum
 {
     public enum ReminderFrequency
     {
-        Daily = 1,
-        Weekly = 2,
-        Monthly = 3
+        Hourly = 1,
+        Daily = 2,
+        Weekly = 3,
+        Monthly = 4
     }
 }
 

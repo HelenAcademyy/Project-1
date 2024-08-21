@@ -14,7 +14,7 @@ namespace HelenAPI.Controllers
     [Route("[controller]")]
     public class PaystackController : ControllerBase
     {
-        private readonly IPaystackService _paystackService;
+        /*private readonly IPaystackService _paystackService;
         private readonly ILogger<PaystackController> _logger;
 
         public PaystackController(IPaystackService paystackService, ILogger<PaystackController> logger)
@@ -70,5 +70,6 @@ namespace HelenAPI.Controllers
                 });
             }
         }
+    }*/
     }
 }

@@ -27,7 +27,7 @@ namespace HelenAPI.Controllers
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
-        [HttpPost("AddUser")]
+        [HttpPost("add-user")]
         [ProducesResponseType(typeof(GenericResponse<IEnumerable<UserData>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(GenericResponse<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(GenericResponse<string>), StatusCodes.Status500InternalServerError)]
@@ -63,7 +63,7 @@ namespace HelenAPI.Controllers
             }
         }
 
-        [HttpPut("UpdateUser")]
+        [HttpPut("update-user")]
         [ProducesResponseType(typeof(GenericResponse<UserData>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(GenericResponse<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(GenericResponse<string>), StatusCodes.Status500InternalServerError)]
@@ -99,7 +99,7 @@ namespace HelenAPI.Controllers
             }
         }
 
-        [HttpGet("GetAllUsers")]
+        [HttpGet("get-all-users")]
         [ProducesResponseType(typeof(GenericResponse<IEnumerable<UserData>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(GenericResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllUsers()

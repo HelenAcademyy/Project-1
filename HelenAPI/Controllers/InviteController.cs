@@ -36,7 +36,7 @@ namespace HelenAPI.Controllers
             _batchSize = _configuration.GetValue<int>("BatchProcessing:BatchSize");
         }
 
-        [HttpGet("GetAllLocations")]
+        [HttpGet("get-all-locations")]
         [ProducesResponseType(typeof(GenericResponse<IEnumerable<LocationNotificationData>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(GenericResponse<IEnumerable<LocationNotificationData>>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllLocations()
@@ -93,7 +93,7 @@ namespace HelenAPI.Controllers
             });
         }
 
-        [HttpPost("AddLocation")]
+        [HttpPost("add-location")]
         [ProducesResponseType(typeof(GenericResponse<IEnumerable<LocationNotificationData>>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(GenericResponse<IEnumerable<LocationNotificationData>>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(GenericResponse<IEnumerable<LocationNotificationData>>), StatusCodes.Status500InternalServerError)]
@@ -118,10 +118,10 @@ namespace HelenAPI.Controllers
                 if (!response.IsSuccessful)
                 {
                     _logger.LogWarning("Failed to add locations. Response: {Response}", response.Message);
-                    return StatusCode(response.ResponseCode.Value, new GenericResponse<IEnumerable<LocationNotificationData>>
+                    return StatusCode(response.ResponseCode, new GenericResponse<IEnumerable<LocationNotificationData>>
                     {
                         IsSuccessful = false,
-                        ResponseCode = response.ResponseCode.Value,
+                        ResponseCode = response.ResponseCode,
                         Message = response.Message,
                         Data = null
                     });
@@ -143,7 +143,7 @@ namespace HelenAPI.Controllers
             }
         }
 
-        [HttpPut("UpdateLocation")]
+        [HttpPut("update-location")]
         [ProducesResponseType(typeof(GenericResponse<IEnumerable<LocationNotificationData>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(GenericResponse<IEnumerable<LocationNotificationData>>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(GenericResponse<IEnumerable<LocationNotificationData>>), StatusCodes.Status500InternalServerError)]
@@ -168,10 +168,10 @@ namespace HelenAPI.Controllers
                 if (!response.IsSuccessful)
                 {
                     _logger.LogWarning("Failed to update locations. Response: {Response}", response.Message);
-                    return StatusCode(response.ResponseCode.Value, new GenericResponse<IEnumerable<LocationNotificationData>>
+                    return StatusCode(response.ResponseCode, new GenericResponse<IEnumerable<LocationNotificationData>>
                     {
                         IsSuccessful = false,
-                        ResponseCode = response.ResponseCode.Value,
+                        ResponseCode = response.ResponseCode,
                         Message = response.Message,
                         Data = null
                     });
@@ -193,6 +193,7 @@ namespace HelenAPI.Controllers
             }
         }
 
+        
         /*[HttpPost("UpdateLocationFromFile")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(GenericResponse<string>), StatusCodes.Status200OK)]

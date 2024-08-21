@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Helen.Service
 {
-    public interface IMTNService
+    /*public interface IMTNService
     {
         Task<GenericResponse<T>> SendSms<T>(SmsRequest request) where T : class;
     }
@@ -50,7 +50,6 @@ namespace Helen.Service
 
                 string url = uriBuilder.ToString();
 
-                // Send the SMS request using the utility
                 var apiResponse = await _utility.Response<SendSmsResponse>(url, HttpMethod.Post, request);//Response<SendSmsResponse>(url, HttpMethod.Post, request);
 
                 response.ResponseCode = apiResponse.ResponseCode;
@@ -78,5 +77,5 @@ namespace Helen.Service
 
             return response;
         }
-    }
+    }*/
 }

@@ -22,6 +22,15 @@
     <None Remove="Paystack\" />
     <None Remove="Paystack\Request\" />
     <None Remove="Paystack\Response\" />
+    <None Remove="Brevo\" />
+    <None Remove="Brevo\Request\" />
+    <None Remove="Brevo\Response\" />
+    <None Remove="Google\" />
+    <None Remove="Google\Request\" />
+    <None Remove="Google\Response\" />
+    <None Remove="BulkSms\" />
+    <None Remove="BulkSms\Request\" />
+    <None Remove="BulkSms\Response\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="MTN\" />
@@ -39,5 +48,17 @@
     <Folder Include="Paystack\" />
     <Folder Include="Paystack\Request\" />
     <Folder Include="Paystack\Response\" />
+    <Folder Include="Brevo\" />
+    <Folder Include="Brevo\Request\" />
+    <Folder Include="Brevo\Response\" />
+    <Folder Include="Google\" />
+    <Folder Include="Google\Request\" />
+    <Folder Include="Google\Response\" />
+    <Folder Include="BulkSms\" />
+    <Folder Include="BulkSms\Request\" />
+    <Folder Include="BulkSms\Response\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="6.0.2" />
   </ItemGroup>
 </Project>

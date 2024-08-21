@@ -176,8 +176,8 @@ namespace Helen.Service
 
             try
             {
+                // Find the existing user by Username and Id
                 var existingUser = await _dbContext.UserData
-                    .AsNoTracking()
                     .FirstOrDefaultAsync(u => u.Username == user.Username);
 
                 if (existingUser == null)
@@ -191,15 +191,72 @@ namespace Helen.Service
                     };
                 }
 
-                _dbContext.UserData.Update(user);
-                await _dbContext.SaveChangesAsync();
+                // Update properties if they differ
+                bool isUpdated = false;
+
+                if (existingUser.PhoneNumber != user.PhoneNumber)
+                {
+                    existingUser.PhoneNumber = user.PhoneNumber;
+                    isUpdated = true;
+                }
+                if (existingUser.Email != user.Email)
+                {
+                    existingUser.Email = user.Email;
+                    isUpdated = true;
+                }
+                if (existingUser.Budget != user.Budget)
+                {
+                    existingUser.Budget = user.Budget;
+                    isUpdated = true;
+                }
+                if (existingUser.IsSmoker != user.IsSmoker)
+                {
+                    existingUser.IsSmoker = user.IsSmoker;
+                    isUpdated = true;
+                }
+                if (existingUser.ReminderFrequency != user.ReminderFrequency)
+                {
+                    existingUser.ReminderFrequency = user.ReminderFrequency;
+                    isUpdated = true;
+                }
+                if (existingUser.Status != user.Status)
+                {
+                    existingUser.Status = user.Status;
+                    isUpdated = true;
+                }
+                if (existingUser.ReminderTime != user.ReminderTime)
+                {
+                    existingUser.ReminderTime = user.ReminderTime;
+                    isUpdated = true;
+                }
+                if (existingUser.SendViaMail != user.SendViaMail)
+                {
+                    existingUser.SendViaMail = user.SendViaMail;
+                    isUpdated = true;
+                }
+                if (existingUser.SendViaPhone != user.SendViaPhone)
+                {
+                    existingUser.SendViaPhone = user.SendViaPhone;
+                    isUpdated = true;
+                }
+                if (existingUser.Location != user.Location.ToLower())
+                {
+                    existingUser.Location = user.Location.ToLower();
+                    isUpdated = true;
+                }
+
+                // Save changes if updates were made
+                if (isUpdated)
+                {
+                    await _dbContext.SaveChangesAsync();
+                }
 
                 return new GenericResponse<UserData>
                 {
                     ResponseCode = 200,
                     IsSuccessful = true,
-                    Message = "User updated successfully",
-                    Data = user
+                    Message = isUpdated ? "User updated successfully" : "No changes detected",
+                    Data = existingUser
                 };
             }
             catch (Exception ex)
@@ -214,5 +271,6 @@ namespace Helen.Service
                 };
             }
         }
+
     }
 }
